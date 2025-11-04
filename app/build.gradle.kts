@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -82,6 +83,13 @@ dependencies {
 
     implementation(libs.navigation.compose)
     implementation(libs.hilt.navigation.compose)
+
+
+    // Hilt Work - runtime integration
+    implementation(libs.hilt.work)
+
+    // AndroidX Hilt compiler - annotation processor (kapt)
+    ksp(libs.androidx.hilt.compiler)
 //    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
 //
 //
