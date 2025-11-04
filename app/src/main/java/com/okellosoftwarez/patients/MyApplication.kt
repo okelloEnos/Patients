@@ -1,20 +1,37 @@
 package com.okellosoftwarez.patients
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 /**
  * MyApplication
  *
- * The entry point for the application where Hilt dependency injection
- * is initialized. All other app components can now use @AndroidEntryPoint
- * for dependency injection (e.g., Activities, ViewModels, Workers, etc.).
+ * Initializes Hilt (via @HiltAndroidApp) and wires Hilt's WorkerFactory into WorkManager
+ * so that Workers can receive @Inject dependencies (e.g. @HiltWorker + @AssistedInject).
  */
 @HiltAndroidApp
-class MyApplication : Application() {
+class MyApplication : Application(), Configuration.Provider {
+
+    // Hilt will provide the worker factory
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
     override fun onCreate() {
         super.onCreate()
-        // Perform any global initialization here if needed
-        // e.g., initializing Timber logging, analytics, etc.
+        // any other app-wide initialisation can go here (e.g., Timber)
+    }
+
+    /**
+     * Provide WorkManager configuration that uses Hilt's WorkerFactory.
+     * This is required for Hilt-injected workers (HiltWorker).
+     */
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
     }
 }
+
