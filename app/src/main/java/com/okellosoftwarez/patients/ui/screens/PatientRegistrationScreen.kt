@@ -185,7 +185,7 @@ fun PatientRegistrationScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Saving...", style = MaterialTheme.typography.labelLarge)
                         } else {
-                            Text("Save & Proceed", style = MaterialTheme.typography.labelLarge)
+                            Text("Create Patient", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
