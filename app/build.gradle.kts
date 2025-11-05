@@ -90,6 +90,7 @@ dependencies {
 
     // AndroidX Hilt compiler - annotation processor (kapt)
     ksp(libs.androidx.hilt.compiler)
+    implementation(libs.compose.material.icons.extended)
 //    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
 //
 //

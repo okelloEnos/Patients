@@ -41,7 +41,7 @@ fun AppNavHost() {
         builder = {
 
             composable("patients") {
-                PatientListScreen(
+                AllPatientsScreen(
                     onNavigate = { route ->
                         navController.navigate(route)
                     },
@@ -63,7 +63,8 @@ fun AppNavHost() {
                 arguments = listOf(navArgument("patientId") { type = NavType.LongType })
             ) { backStackEntry ->
                 val pid = backStackEntry.arguments?.getLong("patientId") ?: 0L
-                VitalsScreen(
+
+                PatientVitalsScreen(
                     patientId = pid,
                     onNavigate = { route -> navController.navigate(route) },
                     sharedViewModel = sharedViewModel
@@ -80,7 +81,7 @@ fun AppNavHost() {
                 val pid = backStackEntry.arguments?.getLong("patientId") ?: 0L
                 val epoch =
                     backStackEntry.arguments?.getLong("visitEpoch") ?: System.currentTimeMillis()
-                GeneralAssessmentScreen(
+                PatientGeneralAssessmentScreen(
                     patientId = pid,
                     visitEpoch = epoch,
                     onNavigate = { route -> navController.navigate(route) },
@@ -98,7 +99,7 @@ fun AppNavHost() {
                 val pid = backStackEntry.arguments?.getLong("patientId") ?: 0L
                 val epoch =
                     backStackEntry.arguments?.getLong("visitEpoch") ?: System.currentTimeMillis()
-                OverweightAssessmentScreen(
+                PatientOverweightAssessmentScreen(
                     patientId = pid,
                     visitEpoch = epoch,
                     onNavigate = { route -> navController.navigate(route) },
