@@ -63,6 +63,11 @@ object DateUtils {
         return normalizeToMidnight(cal.timeInMillis)
     }
 
+    /** Convert epoch millis to "YYYY-MM-DD" */
+    fun toYMD(epochMillis: Long): String {
+        return isoFormatter.format(Date(epochMillis))
+    }
+
     /**
      * Normalize a timestamp to local midnight (00:00:00.000).
      * This is crucial for date-only comparisons, so "same day" works regardless of time zone.

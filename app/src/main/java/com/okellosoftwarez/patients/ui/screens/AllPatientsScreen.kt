@@ -46,10 +46,11 @@ fun AllPatientsScreen(
     sharedViewModel: SharedViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-
+//    var isSyncing by remember { mutableStateOf(false) }
     // LiveData -> Compose state
     val patients by sharedViewModel.patientsWithLastVitals.observeAsState(emptyList())
     val pendingCount by sharedViewModel.pendingSyncCount.observeAsState(0)
+    val isSyncing by sharedViewModel.isSyncing.collectAsState()
 
     // filter state (epoch at midnight)
     var filterDateEpoch by remember { mutableStateOf<Long?>(null) }
@@ -104,36 +105,46 @@ fun AllPatientsScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
+//            SyncNowScreen()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clickable {
-                                Toast
-                                    .makeText(context, "$pendingCount pending sync(s)", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                            .weight(1f)
+                    if (isSyncing) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.background,
+                            modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clickable {
+                                    sharedViewModel.requestSync()
+//                                    Toast
+//                                        .makeText(context, "$pendingCount pending sync(s)", Toast.LENGTH_SHORT)
+//                                        .show()
+                                }
+                                .weight(1f)
 //                            .padding(end = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Sync,
-                            contentDescription = "Pending syncs",
-                            tint = if (pendingCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = "$pendingCount pending sync(s)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = "Pending syncs",
+                                tint = if (pendingCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "$pendingCount pending sync(s)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
+
+
 
                     Spacer(Modifier.width(8.dp))
                     val hintColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -278,7 +289,7 @@ private fun PatientCard(entry: PatientWithLastVitals, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Icon(
-                    imageVector = Icons.Default.KeyboardArrowRight,
+                    imageVector = Icons.Default.KeyboardDoubleArrowRight,
                     contentDescription = "Open",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier

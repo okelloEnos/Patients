@@ -1,10 +1,12 @@
 package com.okellosoftwarez.patients
 
 import android.content.Context
-import com.okellosoftwarez.patients.data.AppDatabase
+import androidx.work.WorkManager
 import com.google.gson.Gson
+import com.okellosoftwarez.patients.data.AppDatabase
 import com.okellosoftwarez.patients.network.ApiService
 import com.okellosoftwarez.patients.network.AuthInterceptor
+import com.okellosoftwarez.patients.util.PrefsHelper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,78 +18,92 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
-/**
- * AppModule
- *
- * Centralized dependency provider for:
- *  - Room database
- *  - Retrofit + OkHttp with AuthInterceptor
- *  - Gson serialization
- *  - ApiService interface
- */
 private const val BASE_URL = "https://patientvisitapis.intellisoftkenya.com/api/"
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    /** Provides Room Database instance */
+    // -------------------------
+    // Database
+    // -------------------------
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getInstance(context)
-    }
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
+        AppDatabase.getInstance(context)
 
-    /** Provides Gson instance */
+    // -------------------------
+    // Gson
+    // -------------------------
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()
 
-    /** Provides AuthInterceptor for token injection */
+    // -------------------------
+    // PrefsHelper
+    // -------------------------
+    /**
+     * Provide the PrefsHelper used across the app (token storage, last-sync time, etc).
+     * Ensure your PrefsHelper has an @Inject constructor or that this provider matches its constructor.
+     */
     @Provides
     @Singleton
-    fun provideAuthInterceptor(@ApplicationContext context: Context): AuthInterceptor {
-        return AuthInterceptor(context)
-    }
+    fun providePrefsHelper(@ApplicationContext context: Context): PrefsHelper =
+        PrefsHelper(context)
 
-    /** Provides HttpLoggingInterceptor for debugging */
+    // -------------------------
+    // Interceptors & OkHttp
+    // -------------------------
     @Provides
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
 
-    /** Provides OkHttp client with AuthInterceptor + Logging */
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(prefsHelper: PrefsHelper): AuthInterceptor =
+        AuthInterceptor(prefsHelper)
+
     @Provides
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
         loggingInterceptor: HttpLoggingInterceptor
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
+    ): OkHttpClient =
+        OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .build()
-    }
 
-    /** Provides Retrofit instance configured with Gson and OkHttp */
+    // -------------------------
+    // Retrofit & ApiService
+    // -------------------------
     @Provides
     @Singleton
-    fun provideRetrofit(
-        client: OkHttpClient,
-        gson: Gson
-    ): Retrofit {
-        return Retrofit.Builder()
+    fun provideRetrofit(client: OkHttpClient, gson: Gson): Retrofit =
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
-    }
 
-    /** Provides ApiService interface implementation */
     @Provides
     @Singleton
-    fun provideApiService(retrofit: Retrofit): ApiService {
-        return retrofit.create(ApiService::class.java)
-    }
-}
+    fun provideApiService(retrofit: Retrofit): ApiService =
+        retrofit.create(ApiService::class.java)
 
+    // -------------------------
+    // WorkManager (convenience)
+    // -------------------------
+    /**
+     * Provide WorkManager instance for enqueuing sync jobs from the repository or UI.
+     * Note: ensure your Application class is configured for Hilt and WorkManager Hilt integration
+     * if you want to use @HiltWorker in your workers.
+     */
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
+        WorkManager.getInstance(context)
+}
